@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0d0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Reddit NSFW" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Reddit NSFW Search</title>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #1a1a1e;
+      --surface2: #25252b;
+      --border: #33333a;
+      --text: #f0f0f2;
+      --muted: #8a8a93;
+      --accent: #ff4500;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    }
+    .app { max-width: 480px; margin: 0 auto; padding-top: 28px; }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--accent); }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 0 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:active { opacity: 0.85; }
+
+    .options {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .opt {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .opt.active {
+      background: var(--surface2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .opt:active { background: var(--surface2); }
+
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .add-fav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .add-fav input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .add-fav .btn { padding: 0 14px; font-size: 0.9rem; border-radius: 10px; }
+
+    .fav-list { display: flex; flex-direction: column; gap: 6px; }
+    .fav-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .fav-item:active { background: var(--surface2); }
+    .fav-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .fav-del {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .fav-del:active { color: var(--accent); }
+
+    .empty-fav {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 16px;
+    }
+
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 32px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Reddit NSFW</h1>
+
+    <div class="search-box">
+      <input id="q" type="search" placeholder="Search Reddit NSFW…" autocomplete="off" enterkeyhint="search" />
+      <button class="btn" id="goBtn">Search</button>
+    </div>
+
+    <div class="options">
+      <button class="opt active" data-type="all">All</button>
+      <button class="opt" data-type="link">Posts</button>
+      <button class="opt" data-type="media">Media</button>
+    </div>
+
+    <div class="section-title">Favourites</div>
+    <div class="add-fav">
+      <input id="favInput" type="text" placeholder="Save a search term…" autocomplete="off" />
+      <button class="btn" id="addFavBtn">Add</button>
+    </div>
+    <div id="favList" class="fav-list"></div>
+
+    <p class="hint">
+      Opens Reddit search with NSFW results included.<br>
+      Favourites are saved only on this phone.
+    </p>
+  </div>
+
+  <script>
+    const STORAGE = "redditNsfwFavs_v1";
+    let searchType = "all";
+    let favs = [];
+
+    function loadFavs() {
+      try { favs = JSON.parse(localStorage.getItem(STORAGE) || "[]"); }
+      catch { favs = []; }
+    }
+    function saveFavs() {
+      localStorage.setItem(STORAGE, JSON.stringify(favs));
+    }
+
+    function buildUrl(query) {
+      const q = encodeURIComponent(query.trim());
+      if (!q) return "https://www.reddit.com/search/?include_over_18=1";
+
+      let url = `https://www.reddit.com/search/?q=${q}&include_over_18=1`;
+
+      if (searchType === "link") {
+        url += "&type=link";
+      } else if (searchType === "media") {
+        // media-ish: prefer posts that tend to have images/videos
+        url += "&type=link&sort=relevance";
+      }
+      return url;
+    }
+
+    function doSearch(term) {
+      const query = (term || document.getElementById("q").value).trim();
+      if (!query) {
+        window.open("https://www.reddit.com/search/?include_over_18=1", "_blank");
+        return;
+      }
+      window.open(buildUrl(query), "_blank");
+    }
+
+    function renderFavs() {
+      const el = document.getElementById("favList");
+      if (favs.length === 0) {
+        el.innerHTML = `<div class="empty-fav">No favourites yet</div>`;
+        return;
+      }
+      el.innerHTML = favs.map((name, i) => `
+        <div class="fav-item" data-i="${i}">
+          <div class="fav-name">${escapeHtml(name)}</div>
+          <button class="fav-del" data-del="${i}" aria-label="Remove">×</button>
+        </div>
+      `).join("");
+
+      el.querySelectorAll(".fav-item").forEach(item => {
+        item.addEventListener("click", e => {
+          if (e.target.dataset.del !== undefined) return;
+          const name = favs[item.dataset.i];
+          document.getElementById("q").value = name;
+          doSearch(name);
+        });
+      });
+      el.querySelectorAll(".fav-del").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          favs.splice(+btn.dataset.del, 1);
+          saveFavs();
+          renderFavs();
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function addFav() {
+      const input = document.getElementById("favInput");
+      const name = input.value.trim();
+      if (!name) return;
+      if (favs.some(f => f.toLowerCase() === name.toLowerCase())) {
+        input.value = "";
+        return;
+      }
+      favs.unshift(name);
+      saveFavs();
+      input.value = "";
+      renderFavs();
+    }
+
+    document.getElementById("goBtn").addEventListener("click", () => doSearch());
+    document.getElementById("q").addEventListener("keydown", e => {
+      if (e.key === "Enter") doSearch();
+    });
+
+    document.querySelectorAll(".opt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        searchType = btn.dataset.type;
+      });
+    });
+
+    document.getElementById("addFavBtn").addEventListener("click", addFav);
+    document.getElementById("favInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") addFav();
+    });
+
+    loadFavs();
+    renderFavs();
+  </script>
+</body>
+</html>

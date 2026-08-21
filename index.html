@@ -40,7 +40,7 @@
     .search-box {
       display: flex;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 28px;
     }
     .search-box input {
       flex: 1;
@@ -67,28 +67,6 @@
       white-space: nowrap;
     }
     .btn:active { opacity: 0.85; }
-
-    .options {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-    }
-    .opt {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 9px 14px;
-      border-radius: 999px;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-    .opt.active {
-      background: var(--surface2);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .opt:active { background: var(--surface2); }
 
     .section-title {
       font-size: 0.75rem;
@@ -172,12 +150,6 @@
       <button class="btn" id="goBtn">Search</button>
     </div>
 
-    <div class="options">
-      <button class="opt active" data-type="all">All</button>
-      <button class="opt" data-type="link">Posts</button>
-      <button class="opt" data-type="media">Media</button>
-    </div>
-
     <div class="section-title">Favourites</div>
     <div class="add-fav">
       <input id="favInput" type="text" placeholder="Save a search term…" autocomplete="off" />
@@ -193,7 +165,6 @@
 
   <script>
     const STORAGE = "redditNsfwFavs_v1";
-    let searchType = "all";
     let favs = [];
 
     function loadFavs() {
@@ -207,16 +178,7 @@
     function buildUrl(query) {
       const q = encodeURIComponent(query.trim());
       if (!q) return "https://www.reddit.com/search/?include_over_18=1";
-
-      let url = `https://www.reddit.com/search/?q=${q}&include_over_18=1`;
-
-      if (searchType === "link") {
-        url += "&type=link";
-      } else if (searchType === "media") {
-        // media-ish: prefer posts that tend to have images/videos
-        url += "&type=link&sort=relevance";
-      }
-      return url;
+      return `https://www.reddit.com/search/?q=${q}&include_over_18=1`;
     }
 
     function doSearch(term) {
@@ -282,14 +244,6 @@
       if (e.key === "Enter") doSearch();
     });
 
-    document.querySelectorAll(".opt").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        searchType = btn.dataset.type;
-      });
-    });
-
     document.getElementById("addFavBtn").addEventListener("click", addFav);
     document.getElementById("favInput").addEventListener("keydown", e => {
       if (e.key === "Enter") addFav();
@@ -297,6 +251,10 @@
 
     loadFavs();
     renderFavs();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
   </script>
 </body>
 </html>
